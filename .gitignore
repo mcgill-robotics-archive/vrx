@@ -1,0 +1,23 @@
+# ROS
+.catkin_tools
+catkin_ws/logs
+catkin_ws/build
+catkin_ws/devel
+catkin_ws/install
+ros_lib
+*.bag
+
+# Python
+*.py[cod]
+
+# C extensions
+*.so
+
+# Temporary files
+*~
+*.swo
+*.swp
+.DS_Store
+
+# VRX Repo
+catkin_ws/src/vrx
