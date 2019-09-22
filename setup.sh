@@ -17,11 +17,11 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
 
 # Header
 echo
-echo "${header} Welcome to McGill Robotics Drone ${reset}"
+echo "${header} Welcome to McGill Robotics VRX ${reset}"
 
-# Verify running on Ubuntu 16.04
+# Verify running on Ubuntu 18.04
 if [[ $(lsb_release -sc) != "bionic" ]]; then
-  echo "${warning}CompSys only supports Ubuntu 18.04${reset}"
+  echo "${warning}This script only supports Ubuntu 18.04${reset}"
   exit -1
 fi
 
@@ -72,6 +72,9 @@ VRX_DIR="${DIR}/catkin_ws/src/vrx"
 
 sudo apt-get install -y cmake mercurial git ruby libeigen3-dev pkg-config \
                         protobuf-compiler
+
+rosdep update -a
+rosdep install -a
 
 ./tools/gazebo/upgrade-gazebo.sh
 
