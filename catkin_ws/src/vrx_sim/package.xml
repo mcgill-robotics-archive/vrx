@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>vrx_sim</name>
+  <version>0.0.0</version>
+
+  <description>
+    MR VRX gazebo simulation package
+  </description>
+
+  <maintainer email="jad.wehbeh@mail.mcgill.ca">
+    Jad (JadWehbeh)
+  </maintainer>
+
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>gazebo_ros</depend>
+  <depend>vrx_gazebo</depend>
+  <depend>gazebo_dev</depend>
+  <depend>wamv_gazebo</depend>
+  <depend>wave_gazebo</depend>
+  <depend>xacro</depend>
+
+  <export>
+    <gazebo_ros gazebo_model_path="${prefix}/models"/>
+  </export>
+</package>
