@@ -1,0 +1,13 @@
+<launch>
+    <!-- Effort Controllers -->
+    <node name="DiffDrive"
+          pkg="control"
+          type="diffdrive_exec.py"
+          respawn="false"
+          output="screen">
+    </node>
+
+    <!-- ROS PID Controllers -->
+    <include file="$(find control)/launch/pid.launch" />
+
+</launch>
