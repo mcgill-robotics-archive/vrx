@@ -19,5 +19,6 @@
   <depend>pid</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
+  <depend>tf2_ros</depend>
 
 </package>

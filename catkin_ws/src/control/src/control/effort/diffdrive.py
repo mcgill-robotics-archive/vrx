@@ -1,52 +1,54 @@
 import rospy
-from numpy import interp
+import numpy as np
+
+from math import pi
+
+import message_filters
 
 from geometry_msgs.msg import TwistStamped
-from control.msg import ThrusterCmd
+from std_msgs.msg import Float32
 
 
 class DifferentialDrive(object):
-    def __init__(self, sub_topic, pub_topic):
-        self.min_pwm = rospy.get_param('~min_pwm', 1100)
-        self.max_pwm = rospy.get_param('~max_pwm', 1800)
-        self.zero_pwm = rospy.get_param('~neutral_pwm', 1500)
-        self.linfac = rospy.get_param('~linear_scaling', 20)
-        self.angfac = rospy.get_param('~angular_scaling', 8)
+    def __init__(self, linear_cmd_topic, angular_cmd_topic, left_thrust_topic,
+                 right_thrust_topic):
+        """
+        Initializes a differential driver.
+        Args:
+            linear_cmd_topic: Topic to velocity commands on as TwistStamped
+                              messages.
+            angular_cmd_topic: Topic to recieve angular rate(yaw_rate) commands
+                                on as TwistStamped messages.
+            left_thrust_topic: Topic to publish left thruster outputs to.
+            right_thrust_topic: Topic to publish right thruster outputs to.
+        """
+        self.linfac = rospy.get_param('~linear_scaling', 0.1)
+        self.angfac = rospy.get_param('~angular_scaling', 10)
+        self.max_thrust = rospy.get_param('~max_thrust', 50)
 
-        self.min = (-0.3 * self.linfac) + (-0.2 * self.angfac)
-        self.max = (0.3 * self.linfac) + (0.2 * self.angfac)
+        linear_cmd_sub = message_filters.Subscriber(
+            linear_cmd_topic, TwistStamped, queue_size=1)
+        angular_cmd_sub = message_filters.Subscriber(
+            angular_cmd_topic, TwistStamped, queue_size=1)
 
-        self.sub_range = [self.min, self.max]
-        self.pub_range = [self.min_pwm, self.max_pwm]
+        self.ts = message_filters.ApproximateTimeSynchronizer(
+            [linear_cmd_sub, angular_cmd_sub], queue_size=10, slop=0.1)
+        self.ts.registerCallback(self.twist_cb)
 
-        self.sub = rospy.Subscriber(sub_topic,
-                                    TwistStamped,
-                                    self.twist_cb,
-                                    queue_size=1)
+        self.pub_left_thruster = rospy.Publisher(
+            left_thrust_topic, Float32, queue_size=1)
+        self.pub_right_thruster = rospy.Publisher(
+            right_thrust_topic, Float32, queue_size=1)
 
-        self.pub = rospy.Publisher(pub_topic,
-                                   ThrusterCmd,
-                                   queue_size=1)
+    def twist_cb(self, linear, angular):
+        port = self.linfac * linear.twist.linear.x - \
+                self.angfac * angular.twist.angular.z
 
-        self.msg = ThrusterCmd()
+        star = self.linfac * linear.twist.linear.x + \
+                self.angfac * angular.twist.angular.z
 
-        rospy.loginfo('\nDiff. drive controller started')
+        port = np.clip(port, -self.max_thrust, self.max_thrust)
+        star = np.clip(star, -self.max_thrust, self.max_thrust)
 
-    def twist_cb(self, data):
-        rospy.logdebug('DiffDrive called ' + rospy.get_caller_id())
-        rospy.logdebug('\tlinear:\t%'.format(data.twist.linear[0]))
-        rospy.logdebug('\tangular:\t%'.format(data.twist.angular[2]))
-
-        port = self.linfac * data.twist.linear[0] + \
-               self.angfac * data.twist.angular[2]
-        star = self.linfac * data.twist.linear[0] - \
-               self.angfac * data.twist.angular[2]
-
-        port = interp(port, self.sub_range, self.pub_range)
-        star = interp(star, self.pub_range, self.pub_range)
-
-        self.msg.port = max(self.min_pwm, min(self.max_pwm, port))
-        self.msg.starboard = max(self.min_pwm, min(self.max_pwm, star))
-
-        self.pub.publish(self.msg)
-
+        self.pub_left_thruster.publish(port)
+        self.pub_right_thruster.publish(star)

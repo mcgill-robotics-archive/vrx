@@ -7,6 +7,18 @@
           output="screen">
     </node>
 
+    <node name="translator"
+          pkg="control"
+          type="translator.py"
+          respawn="false"
+          output="screen"/>
+
+    <node name="waypoint_controller"
+          pkg="control"
+          type="waypoint_controller.py"
+          respawn="false"
+          output="screen"/>
+
     <!-- ROS PID Controllers -->
     <include file="$(find control)/launch/pid.launch" />
 

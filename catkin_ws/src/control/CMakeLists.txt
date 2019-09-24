@@ -20,9 +20,15 @@ add_message_files(
 	ThrusterCmd.msg
 )
 
+add_service_files(
+  FILES
+  Waypoint.srv
+)
+
 generate_messages(
 	DEPENDENCIES
 	std_msgs
+  geometry_msgs
 )
 
 ###################################
@@ -32,10 +38,11 @@ generate_messages(
 catkin_package(
 	CATKIN_DEPENDS
 	geometry_msgs
-  	message_generation
+  message_generation
 	rospy
 	pid
 	std_msgs
+  tf2_ros
 )
 
 #############
@@ -44,5 +51,6 @@ catkin_package(
 
 install(PROGRAMS
 	scripts/diffdrive_exec.py
+  scripts/translator.py
 	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
