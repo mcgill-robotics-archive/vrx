@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vrx_sim)
+project(vrx_models)
 
 find_package(catkin REQUIRED COMPONENTS
   vrx_gazebo
