@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!-- Model for the "Hello World" obstacle avoidance demo course-->
+<sdf version="1.6">
+  <model name="vrx_navigation_course">
+    <!-- Obstacles -->
+    <include>
+      <name>obstacle_1</name>
+      <pose>0 0 0 0 -0 0</pose>
+      <uri>model://surmark950410</uri>
+    </include>
+
+    <include>
+      <name>obstacle_2</name>
+      <pose>20 0 0 0 -0 0</pose>
+      <uri>model://surmark950410</uri>
+    </include>
+
+    <include>
+      <name>obstacle_3</name>
+      <pose>40 0 0 0 -0 0</pose>
+      <uri>model://surmark950410</uri>
+    </include>
+
+    <include>
+      <name>obstacle_4</name>
+      <pose>60 0 0 0 -0 0</pose>
+      <uri>model://surmark950410</uri>
+    </include>
+
+    <include>
+      <name>obstacle_5</name>
+      <pose>80 0 0 0 -0 0</pose>
+      <uri>model://surmark950410</uri>
+    </include>
+  </model>
+</sdf>
