@@ -1,0 +1,9 @@
+<launch>
+    <node name="Planner"
+          pkg="planner"
+          type="planner_node.py"
+          respawn="false"
+          output="screen">
+        <param name="angle_thresh" value="0.175" />
+    </node>
+</launch>
