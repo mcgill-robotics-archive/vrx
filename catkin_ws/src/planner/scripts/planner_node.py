@@ -15,5 +15,6 @@ if __name__ == '__main__':
 
 	mp = Planner(task_topic, attempted_tasks, init_timeout,
 		choose_task_rate, give_up_rate)
+	
 	mp.start()
 	rospy.spin()
