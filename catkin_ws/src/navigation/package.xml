@@ -13,7 +13,7 @@
   <depend>geodesy</depend>
   <depend>geographic_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depemd>std_msgs</depemd>
+  <depend>std_msgs</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>uuid_msgs</depend>
