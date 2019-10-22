@@ -12,10 +12,10 @@ class Placeholder(smach.State):
 		smach.State.__init__(self, outcomes=outcomes)
 
 	def execute(self, userdata):
-		rospy.logdebug('[Wayfinding] Executing placeholder state')
+		rospy.logdebug('[Scan] Executing placeholder state')
 		return 'succeeded'
 
-class Wayfinding(object):
+class Scan(object):
 	def __init__(self):
 		outcomes = ['succeeded', 'failed', 'preempted']
 		self.sm = smach.StateMachine(outcomes=outcomes)

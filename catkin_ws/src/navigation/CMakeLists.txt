@@ -1,18 +1,28 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(planner)
+project(navigation)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
 	rospy
-	smach
-	smach_ros
+	geodesy
+	geographic_msgs
+	geometry_msgs
 	std_msgs
-	vrx_gazebo
+	tf2
+	tf2_ros
+	uuid_msgs
 )
 
-catkin_python_setup()
+## System dependencies are found with CMake's conventions
+# find_package(Boost REQUIRED COMPONENTS system)
+
+
+## Uncomment this if the package has a setup.py. This macro ensures
+## modules and global scripts declared therein get installed
+## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
+# catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -88,13 +98,21 @@ catkin_python_setup()
 ###################################
 ## catkin specific configuration ##
 ###################################
-
+## The catkin_package macro generates cmake config files for your package
+## Declare things to be passed to dependent projects
+## INCLUDE_DIRS: uncomment this if your package contains header files
+## LIBRARIES: libraries you create in this project that dependent projects also need
+## CATKIN_DEPENDS: catkin_packages dependent projects also need
+## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(CATKIN_DEPENDS
 	rospy
-	smach
-	smach_ros
+	geodesy
+	geographic_msgs
+	geometry_msgs
 	std_msgs
-	vrx_gazebo
+	tf2
+	tf2_ros
+	uuid_msgs
 )
 
 ###########
@@ -110,7 +128,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/planner.cpp
+#   src/${PROJECT_NAME}/navigation.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -121,7 +139,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/planner_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/navigation_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -142,10 +160,15 @@ include_directories(
 ## Install ##
 #############
 
-install(PROGRAMS
-	scripts/planner_node.py
-	DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+# all install targets should use catkin DESTINATION variables
+# See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
+
+## Mark executable scripts (Python etc.) for installation
+## in contrast to setup.py, you can choose the destination
+# install(PROGRAMS
+#   scripts/my_python_script
+#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
@@ -173,7 +196,7 @@ install(PROGRAMS
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_planner.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_navigation.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

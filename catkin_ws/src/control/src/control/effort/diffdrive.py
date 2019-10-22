@@ -33,6 +33,7 @@ class DifferentialDrive(object):
 
         self.ts = message_filters.ApproximateTimeSynchronizer(
             [linear_cmd_sub, angular_cmd_sub], queue_size=10, slop=0.1)
+
         self.ts.registerCallback(self.twist_cb)
 
         self.pub_left_thruster = rospy.Publisher(

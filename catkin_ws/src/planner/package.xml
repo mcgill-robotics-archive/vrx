@@ -15,4 +15,5 @@
   <depend>smach</depend>
   <depend>smach_ros</depend>
   <depend>std_msgs</depend>
+  <depend>vrx_gazebo</depend>
 </package>
