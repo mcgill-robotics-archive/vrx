@@ -27,7 +27,7 @@ class Initialize(smach.State):
 		return 'succeeded'
 
 
-class GiveUp(smach.State):
+class Wait(smach.State):
 	"""
 	Smach state that ignores the current task until it times out
 	"""
@@ -44,7 +44,7 @@ class GiveUp(smach.State):
 		self.zero = rospy.Duration(0)
 
 	def execute(self, userdata):
-		rospy.loginfo('[Global] Executing give up state')
+		rospy.loginfo('[Global] Executing wait state')
 		
 		# Wait until time runs out for current task
 		while (self.t_remain > self.zero):
@@ -68,7 +68,7 @@ class ChooseTask(smach.State):
 					'navigation_course',
 					'scan',
 					'scan_and_dock',
-					'give_up',
+					'wait',
 					'succeeded',
 					'failed',
 					'preempted']
@@ -94,13 +94,15 @@ class ChooseTask(smach.State):
 		# If target tasks is empty, we've completed everything we want to try
 		# Else if task is in attempted tasks, return that task
 		# Otherwise return the give up state
-		if not self.target_tasks:
-			return 'succeeded'
-		elif self.task in self.target_tasks:
+		# UNCOMMENT THE BELOW =================================================
+		# if not self.target_tasks:
+		# 	return 'succeeded'
+		# =====================================================================
+		if self.task in self.target_tasks:
 			self.target_tasks.remove(self.task)
 			return self.task
 		else:
-			return 'give_up'
+			return 'wait'
 
 	def task_cb(self, msg):
 		self.task = msg.name
@@ -129,8 +131,8 @@ class Planner(object):
 				'timed_out':'failed',
 				'preempted':'preempted'})
 			smach.StateMachine.add(
-				'GIVE_UP',
-				GiveUp(task_topic, give_up_rate),
+				'WAIT',
+				Wait(task_topic, give_up_rate),
 				{'succeeded':'CHOOSE_TASK',
 				'failed':'failed',
 				'preempted':'preempted'})
@@ -179,7 +181,7 @@ class Planner(object):
 				'navigation_course':'NAVIGATION_COURSE',
 				'scan':'SCAN',
 				'scan_and_dock':'SCAN_AND_DOCK',
-				'give_up':'GIVE_UP',
+				'wait':'WAIT',
 				'succeeded':'succeeded',
 				'failed':'failed',
 				'preempted':'preempted'})
