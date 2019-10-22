@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install git mercurial curl apt-utils vim \
                       python-pip python3-pip sudo cmake ruby libeigen3-dev \
                       pkg-config protobuf-compiler ros-melodic-pid \
                       ros-melodic-xacro wget ros-melodic-geographic-msgs -y
+
 RUN pip install catkin_tools
 
 RUN git config --global push.default simple && \
@@ -23,19 +24,19 @@ RUN ./setup/zsh/install
 RUN ./setup/config/install
 
 WORKDIR /opt
-RUN mkdir vrx
-COPY . vrx/
 
+ADD tools/. /opt/vrx/tools/
 RUN ./vrx/tools/gazebo/upgrade-gazebo.sh
-
 RUN apt-get install ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-dev -y
 
-
+ADD catkin_ws/. vrx/catkin_ws/
 
 WORKDIR vrx/catkin_ws/
-RUN rm -rf devel build logs
 RUN catkin clean -b --yes
 RUN /bin/bash -c "source /opt/ros/melodic/setup.sh && catkin build"
 
-CMD ["/bin/zsh"]
-
+WORKDIR /opt/vrx
+RUN sudo apt-get install tmuxinator -y
+ADD config/. config/
+ADD run.sh ./
+ENTRYPOINT ["./run.sh"]
