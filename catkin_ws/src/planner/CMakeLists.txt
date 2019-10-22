@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
 	smach
 	smach_ros
 	std_msgs
+	vrx_gazebo
 )
 
 catkin_python_setup()
@@ -93,6 +94,7 @@ catkin_package(CATKIN_DEPENDS
 	smach
 	smach_ros
 	std_msgs
+	vrx_gazebo
 )
 
 ###########
