@@ -9,5 +9,5 @@ cd catkin_ws
 catkin build
 source devel/setup.bash
 
-roslaunch src/control/launch/control.launch
+roslaunch src/control/launch/control.launch &
 roslaunch src/planner/launch/planner.launch

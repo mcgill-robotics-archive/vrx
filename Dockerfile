@@ -7,7 +7,8 @@ ENV IAMROBOT true
 RUN apt-get update && apt-get install git mercurial curl apt-utils vim \
                       python-pip python3-pip sudo cmake ruby libeigen3-dev \
                       pkg-config protobuf-compiler ros-melodic-pid \
-                      ros-melodic-xacro wget ros-melodic-geographic-msgs -y
+                      ros-melodic-xacro wget ros-melodic-geographic-msgs \
+                      ros-melodic-geodesy -y
 
 RUN pip install catkin_tools
 
@@ -31,12 +32,13 @@ RUN apt-get install ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-dev -y
 
 ADD catkin_ws/. vrx/catkin_ws/
 
+RUN apt-get install tmuxinator ros-melodic-smach ros-melodic-smach-ros -y
+
 WORKDIR vrx/catkin_ws/
 RUN catkin clean -b --yes
 RUN /bin/bash -c "source /opt/ros/melodic/setup.sh && catkin build"
 
 WORKDIR /opt/vrx
-RUN sudo apt-get install tmuxinator -y
 ADD config/. config/
 ADD run.sh ./
 ENTRYPOINT ["./run.sh"]
