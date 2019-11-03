@@ -36,22 +36,22 @@ class Controller {
 
   ~Controller() {}
 
-  inline T& Kp() const
+  inline T Kp() const
   {
     return _Kp;
   }
 
-  inline T& Ki() const
+  inline T Ki() const
   {
     return _Ki;
   }
 
-  inline T& Kd() const
+  inline T Kd() const
   {
     return _Kd;
   }
 
-  inline T& target() const
+  inline T target() const
   {
     return _setpoint;
   }
@@ -70,9 +70,9 @@ class Controller {
 
   void measure(const T& data, const double& stamp, const bool reset_integral = false)
   {
-    auto error = data - _setpoint.load();
+    float error = _setpoint.load() - data;
     if (_angular) {
-      error = (error + M_PI) % (2 * M_PI) - M_PI; // wrap to [-pi, pi]
+      error = std::fmod(error + M_PI, 2 * M_PI) - (float)M_PI; // wrap to [-pi, pi]
     }
 
     _curr = { error, stamp };
@@ -85,19 +85,21 @@ class Controller {
   {
     T u = 0;
 
-    auto& error = _curr.first;
+    float& error = _curr.first;
 
-    u += _Kp * error;
+    u += Kp() * error;
 
     if (!_started && _curr.second > 0) {
       _started = true;
     } else if (_started) {
-      auto de = _curr.first - _prev.first;
-      auto dt = _curr.second - _prev.second;
+      float de = _curr.first - _prev.first;
+      float dt = std::max(0., _curr.second - _prev.second);
 
       _sum = std::clamp(_sum + dt * error, -max_windup, max_windup);
-      u += _sum * _Ki;
-      u += (de / dt) * _Kd;
+      u += _sum * Ki();
+
+      if(dt > 0.)
+        u += (de / dt) * Kd();
     }
 
     u = std::clamp(u + _bias, min_effort, max_effort);
@@ -109,10 +111,10 @@ class Controller {
   private:
   Controller(Controller& controller);
 
-  T _Kp;
-  T _Ki;
-  T _Kd;
-  T _bias;
+  std::atomic<T> _Kp;
+  std::atomic<T> _Ki;
+  std::atomic<T> _Kd;
+  std::atomic<T> _bias;
 
   std::pair<T, double> _curr;
   std::pair<T, double> _prev;
