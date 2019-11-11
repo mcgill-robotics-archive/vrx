@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """MR VRX Control - Python Setup"""
 
 from distutils.core import setup
