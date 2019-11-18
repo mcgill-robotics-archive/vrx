@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   geometry_msgs
+  tf
   message_generation
 )
 
@@ -115,6 +116,7 @@ roscpp
 sensor_msgs
 message_runtime
 geometry_msgs
+tf
 #  DEPENDS system_lib
 )
 
@@ -142,7 +144,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/perception_node.cpp)
+add_executable(${PROJECT_NAME}_node src/detection.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

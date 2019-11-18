@@ -7,7 +7,9 @@
           respawn="false">
     <!-- Lidar topic -->
     <param name="lidar_topic" value="/wamv/sensors/lidars/lidar_wamv/points"
-     type="string"/>
+    type="string"/>
+    <param name="lidar_frame" value="wamv/lidar_wamv_link" type="string"/>
+    <param name="base_frame" value="wamv/base_link" type="string"/>
     </node>
   </group>
 </launch>
