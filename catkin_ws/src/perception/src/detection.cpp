@@ -19,27 +19,19 @@
 
 std::string lidar_topic;
 
-bool detection(perception::DetectObjects::Request &rew,
-               perception::DetectObjects::Response &res) {
 
-  // Obtain point cloud message
-  sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage(lidar_topic,
-                                                      ros::Duration(10));
 
-  // convert to PCL point cloud
-  pcl::PCLPointCloud2* cloud_in = new pcl::PCLPointCloud2;
-  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud_in);
-  pcl_conversions::toPCL(pc, *cloud_in);
 
-  // Downsample cloud
-  pcl::VoxelGrid<pcl::PCLPointCloud2> voxel_grid;
-  voxel_grid.setInputCloud(cloudPtr);
-  voxel_grid.setLeafSize(0.01f, 0.01f, 0.01f);
-  pcl::PointCloud2 cloud_filtered;
-  pcl::PointCloud2 cloud_temp;
-  voxel_grid.filter(cloud_filtered);
+void downsample(pcl::PointCloud2ConstPtr input,
+                pcl::PointCloud2ConstPtr filtered){
+  // Use Voxel grid
+  pcl::VoxelGrid<pcl::PCLPointCloud2> vg;
+  vg.setInputCloud(input);
+  vg.setLeafSize(0.01f, 0.01f, 0.01f);
+  vg.filter(*filtered);
+}
 
-  // Perform euclidian clustering
+void euclidean_cluster_extraction(pcl::PointCloud2ConstPtr filtered){
   // Create planar segmentation object to segment water from cluster
   pcl::SACSegmentation<pcl::PointCloud2> seg;
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
@@ -52,7 +44,9 @@ bool detection(perception::DetectObjects::Request &rew,
   seg.setMaxIterations(100);
   seg.setDistanceThreshold(0.02);
 
-  int i=0, nr_points = (int) cloud_filtered->points.size();
+  pcl::PointCloud2 cloud_temp;
+  // Perform euclidian clustering
+  int i=0, nr_points = (int) filtered->points.size();
   while (cloud_filtered->points.size() > 0.3 * nr_points) {
     // Segment planar cloud from remaining cloud
     seg.setInputCloud(cloud_filtered);
@@ -72,6 +66,27 @@ bool detection(perception::DetectObjects::Request &rew,
     extract.filter(cloud_temp);
     cloud_filtered = cloud_temp;
   }
+
+}
+
+
+bool detection(perception::DetectObjects::Request &rew,
+               perception::DetectObjects::Response &res) {
+
+  // Obtain point cloud message
+  sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage(lidar_topic,
+                                                      ros::Duration(10));
+
+  // convert to PCL point cloud
+  pcl::PCLPointCloud2* cloud_in = new pcl::PCLPointCloud2;
+  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud_in);
+  pcl_conversions::toPCL(pc, *cloud_in);
+
+  // Downsample cloud
+  pcl::PointCloud2 cloud_filtered;
+  pcl::PointCloud2ConstPtr filteredPtr(cloud_filtered);
+  downsample(cloudPtr, filteredPtr);
+
 
   // Create KDTree object for cluster extraction
   pcl::search::KdTree<pcl::PointIndices>::Ptr tree (new pcl::search::KdTree<pcl::PointCloud2>);
