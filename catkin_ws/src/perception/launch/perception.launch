@@ -1,0 +1,13 @@
+<launch>
+  <group ns="perception">
+    <node name="object_detection_server"
+          pkg="perception"
+          type="detection.cpp"
+          output="screen"
+          respawn="false">
+    <!-- Lidar topic -->
+    <param name="lidar_topic" value="/wamv/sensors/lidars/lidar_wamv/points"
+     type="string"/>
+    </node>
+  </group>
+</launch>
