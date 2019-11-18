@@ -2,7 +2,7 @@
 // PCL specifc includes
 #include <sensor_msgs/PointCloud2.h>
 #include <pcl_ros/transforms.h>
-#include <pcl_conversions/pcl_conversion.h>
+#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl/ModelCoefficients.h>
@@ -23,21 +23,21 @@
 
 std::string lidar_topic;
 
-void downsample(pcl::PointCloud2ConstPtr input,
-                pcl::PointCloud2ConstPtr filtered){
+void downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr input,
+                pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   // Use Voxel grid
-  pcl::VoxelGrid<pcl::PCLPointCloud2> vg;
+  pcl::VoxelGrid<pcl::PointXYZ> vg;
   vg.setInputCloud(input);
   vg.setLeafSize(0.01f, 0.01f, 0.01f);
   vg.filter(*filtered);
 }
 
-void planar_segmentation(pcl::PointCloud2ConstPtr filtered){
+void planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   // Create planar segmentation object to segment water from cluster
-  pcl::SACSegmentation<pcl::PointCloud2> seg;
+  pcl::SACSegmentation<pcl::PointXYZ> seg;
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
   pcl::ModelCoefficients::Ptr coeff (new pcl::ModelCoefficients);
-  pcl::PointCloud2* cloud_plane = new pcl::PCLPointCloud2;
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PCDWriter write;
   seg.setOptimizeCoefficients(true);
   seg.setModelType(pcl::SACMODEL_PLANE);
@@ -45,7 +45,7 @@ void planar_segmentation(pcl::PointCloud2ConstPtr filtered){
   seg.setMaxIterations(100);
   seg.setDistanceThreshold(0.02);
 
-  pcl::PointCloud2 cloud_temp;
+  pcl::PointCloud<pcl::PointXYZ> cloud_temp;
   // Perform euclidian clustering
   int i=0, nr_points = (int) filtered->points.size();
   while (filtered->points.size() > 0.3 * nr_points) {
@@ -58,11 +58,11 @@ void planar_segmentation(pcl::PointCloud2ConstPtr filtered){
     }
 
     // Extract planar inliers
-    pcl::ExtractIndices<pcl::PointCloud2> extract;
+    pcl::ExtractIndices<pcl::PointXYZ> extract;
     extract.setInputCloud(filtered);
     extract.setIndices(inliers);
     extract.setNegative(false);
-    extract.filter(cloud_plane);
+    extract.filter(*cloud_plane);
     extract.setNegative(true);
     extract.filter(cloud_temp);
     *filtered = cloud_temp;
@@ -71,11 +71,11 @@ void planar_segmentation(pcl::PointCloud2ConstPtr filtered){
 
 std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl::PointXYZ>::Ptr pc){
   // Kd tree
-  pcl::search::KdTree<pcl::PointIndices>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud(pc);
   // cluster extraction
   std::vector<pcl::PointIndices> cluster_indices;
-  pcl::EuclidianClusterExtraction<pcl::PointXYZ> ec;
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
   ec.setClusterTolerance(0.02);
   ec.setMinClusterSize(100);
   ec.setMaxClusterSize(25000);
@@ -83,14 +83,14 @@ std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl:
   ec.setInputCloud(pc);
   ec.extract(cluster_indices);
   // Return indices of clusters
-  return cluster_indices
+  return cluster_indices;
 }
 
-std::list<pcl::CentroidPoint<pcl::PointXYZ>>
-    compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud
+std::list<pcl::PointXYZ>
+    compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
                      std::vector<pcl::PointIndices> cluster_indices){
   int j = 0;
-  std::list<pcl::CentroidPoint<pcl::PointXYZ>> l = {};
+  std::list<pcl::PointXYZ> l = {};
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin();
        it != cluster_indices.end() ; it++) {
 
@@ -98,17 +98,17 @@ std::list<pcl::CentroidPoint<pcl::PointXYZ>>
 
     for (std::vector<int>::const_iterator pit = it->indices.begin();
          pit != it->indices.end(); ++pit) {
-      cloud_cluster->points.push_back(cloud.points[*pit]);
+      cloud_cluster->points.push_back(cloud->points[*pit]);
     }
     cloud_cluster->width = cloud_cluster->points.size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
 
     // Compute centroid of current cluster
-    CentroidPoint<pcl::PointXYZ> centroid;
+    pcl::CentroidPoint<pcl::PointXYZ> centroid;
     // Add points in cluster to centroid point
-    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator cit = cloud.begin();
-         cit != cloud.end() ; cit++) {
+    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator cit = cloud->begin();
+         cit != cloud->end() ; cit++) {
       centroid.add(*cit);
     }
     pcl::PointXYZ c1;
@@ -124,34 +124,30 @@ bool detection(perception::DetectObjects::Request &req,
                perception::DetectObjects::Response &res) {
 
   // Obtain point cloud message
-  sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage(lidar_topic,
-                                                      ros::Duration(10));
-  sensor_msgs::PointCloud2ConstPtr transformed_pc;
+  sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage<sensor_msgs::PointCloud2>
+                                                    (lidar_topic, ros::Duration(10));
+  sensor_msgs::PointCloud2::Ptr transformed_pc;
 
   // Transform point cloud to base link frame
   std::string lidar_frame, base_frame;
   ros::param::get("base_frame", base_frame);
   ros::param::get("lidar_frame", lidar_frame);
   tf::TransformListener listener;
-  pcl_ros::transformPointCloud(base_frame, pc, transformed_pc, listener);
+  pcl_ros::transformPointCloud(bf, pc, transformed_pc, listener);
 
-  // convert to PCL point cloud
-  pcl::PCLPointCloud2 cloud_in = new pcl::PCLPointCloud2;
-  pcl::PCLPointCloud2ConstPtr cloudPtr(cloud_in);
-  pcl_conversions::toPCL(transformed_pc, cloudPtr);
+  // convert to PCL::PointCloud<pcl::PointXYZ>
+  pcl::PCLPointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PCLPointCloud<pcl::PointXYZ> ());
+  pcl::fromPCLPointCloud2(transformed_pc, cloud_xyz);
 
   // Downsample cloud
-  pcl::PointCloud2 cloud_filtered;
-  pcl::PointCloud2ConstPtr filteredPtr(cloud_filtered);
-  downsample(cloudPtr, filteredPtr);
+  pcl::PCLPointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PCLPointCloud<pcl::PointXYZ> ());
+  downsample(cloud_xyz, cloud_filtered);
 
   // Remove planar surfaces from point cloud using segmentation
-  planar_segmentation(filteredPtr);
+  planar_segmentation(cloud_filtered);
 
   // Extract clusters, by first convering PointCloud2 to type XYZ
-  pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_cloud (new pcl::PointCLoud<pcl::PointXYZ>);
-  pcl::fromPCLPointCloud2(*filteredPtr,*xyz_cloud);
-  std::vector<pcl::PointIndices> cluster_indices = euclidian_cluster_extraction(xyz_cloud);
+  std::vector<pcl::PointIndices> cluster_indices = euclidian_cluster_extraction(cloud_filtered);
 
   // For each cluster, compute centroid, and append position
   std::list<pcl::PointXYZ> centroids = compute_centroid(xyz_cloud, cluster_indices);
