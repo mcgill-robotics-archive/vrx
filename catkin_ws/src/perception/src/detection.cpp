@@ -29,7 +29,7 @@ void downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr input,
   // Use Voxel grid
   pcl::VoxelGrid<pcl::PointXYZ> vg;
   vg.setInputCloud(input);
-  vg.setLeafSize(0.01f, 0.01f, 0.01f);
+  vg.setLeafSize(0.1f, 0.1f, 0.1f);
   vg.filter(*filtered);
 }
 
@@ -130,11 +130,11 @@ bool detection(perception::DetectObjects::Request &req,
   sensor_msgs::PointCloud2 transformed_pc;
   // Transform point cloud to base link frame
   std::string lidar_frame, base_frame;
-  ros::param::get("base_frame", base_frame);
+  ros::param::get("~base_frame", base_frame);
+
   ros::param::get("lidar_frame", lidar_frame);
   tf::TransformListener listener;
   pcl_ros::transformPointCloud(base_frame, *pc, transformed_pc, listener);
-  ROS_INFO("Reached here");
 
   // convert to PCL::PointCloud<pcl::PointXYZ>
   pcl::PCLPointCloud2 pcl_pc;
