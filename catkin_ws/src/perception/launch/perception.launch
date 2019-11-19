@@ -2,7 +2,7 @@
   <group ns="perception">
     <node name="object_detection_server"
           pkg="perception"
-          type="detection.cpp"
+          type="detection"
           output="screen"
           respawn="false">
     <!-- Lidar topic -->

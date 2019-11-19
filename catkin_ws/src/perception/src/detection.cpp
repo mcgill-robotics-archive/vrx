@@ -4,6 +4,7 @@
 #include <pcl_ros/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
+#include <pcl/PCLPointCloud2.h>
 #include <pcl/point_types.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/filters/extract_indices.h>
@@ -126,21 +127,23 @@ bool detection(perception::DetectObjects::Request &req,
   // Obtain point cloud message
   sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage<sensor_msgs::PointCloud2>
                                                     (lidar_topic, ros::Duration(10));
-  sensor_msgs::PointCloud2::Ptr transformed_pc;
-
+  sensor_msgs::PointCloud2 transformed_pc;
   // Transform point cloud to base link frame
   std::string lidar_frame, base_frame;
   ros::param::get("base_frame", base_frame);
   ros::param::get("lidar_frame", lidar_frame);
   tf::TransformListener listener;
-  pcl_ros::transformPointCloud(bf, pc, transformed_pc, listener);
+  pcl_ros::transformPointCloud(base_frame, *pc, transformed_pc, listener);
+  ROS_INFO("Reached here");
 
   // convert to PCL::PointCloud<pcl::PointXYZ>
-  pcl::PCLPointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PCLPointCloud<pcl::PointXYZ> ());
-  pcl::fromPCLPointCloud2(transformed_pc, cloud_xyz);
+  pcl::PCLPointCloud2 pcl_pc;
+  pcl_conversions::toPCL(*pc, pcl_pc);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PointCloud<pcl::PointXYZ> ());
+  pcl::fromPCLPointCloud2(pcl_pc, *cloud_xyz);
 
   // Downsample cloud
-  pcl::PCLPointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PCLPointCloud<pcl::PointXYZ> ());
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
   downsample(cloud_xyz, cloud_filtered);
 
   // Remove planar surfaces from point cloud using segmentation
@@ -150,7 +153,7 @@ bool detection(perception::DetectObjects::Request &req,
   std::vector<pcl::PointIndices> cluster_indices = euclidian_cluster_extraction(cloud_filtered);
 
   // For each cluster, compute centroid, and append position
-  std::list<pcl::PointXYZ> centroids = compute_centroid(xyz_cloud, cluster_indices);
+  std::list<pcl::PointXYZ> centroids = compute_centroid(cloud_xyz, cluster_indices);
 
   // Construct response from centroids
   for (std::list<pcl::PointXYZ>::const_iterator it = centroids.begin();
@@ -161,7 +164,7 @@ bool detection(perception::DetectObjects::Request &req,
     p.position.z = it->z;
     res.object_locations.poses.push_back(p);
   }
-  res.header.frame_id = base_frame;
+  res.object_locations.header.frame_id = base_frame;
   return true;
 }
 
