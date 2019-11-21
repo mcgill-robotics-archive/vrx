@@ -86,7 +86,7 @@ std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl:
   ros::param::get("~min_cluster_size", min_cluster_size);
   ec.setClusterTolerance(cluster_tolerance);
   ec.setMinClusterSize(min_cluster_size);
-  ec.setMaxClusterSize(25000);
+  ec.setMaxClusterSize(500);
   ec.setSearchMethod(tree);
   ec.setInputCloud(pc);
   ec.extract(cluster_indices);
@@ -99,14 +99,14 @@ std::list<pcl::PointXYZ>
                      std::vector<pcl::PointIndices> cluster_indices){
 
   std::list<pcl::PointXYZ> l = {};
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin();
       it != cluster_indices.end() ; it++) {
-        for (std::vector<int>::const_iterator pit = it->indices.begin();
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
+    for (std::vector<int>::const_iterator pit = it->indices.begin();
          pit != it->indices.end(); ++pit) {
          cloud_cluster->points.push_back(cloud->points[*pit]);
 
-
+  }
     cloud_cluster->width = cloud_cluster->points.size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
@@ -115,15 +115,15 @@ std::list<pcl::PointXYZ>
   //pcl::toROSMsg(*cloud_cluster, debug_msg);
   //debug_msg.header.frame_id = "wamv/lidar_wamv_link";
   //debug.publish(debug_msg);
-  }
+
 
 
 
     // Compute centroid of current cluster
     pcl::CentroidPoint<pcl::PointXYZ> centroid;
     // Add points in cluster to centroid point
-    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator cit = cloud->begin();
-         cit != cloud->end() ; cit++) {
+    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator cit = cloud_cluster->begin();
+         cit != cloud_cluster->end() ; cit++) {
       centroid.add(*cit);
     }
     pcl::PointXYZ c1;
@@ -204,7 +204,7 @@ void debugCallback(sensor_msgs::PointCloud2ConstPtr input_pc) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
   downsample(cloud_xyz, cloud_filtered);
   *cloud_xyz = *cloud_filtered;
-  //planar_segmentation(cloud_xyz);
+  // planar_segmentation(cloud_xyz);
 
   //sensor_msgs::PointCloud2 debug_msg;
   //pcl::toROSMsg(*cloud_xyz, debug_msg);
