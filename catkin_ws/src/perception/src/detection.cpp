@@ -78,8 +78,12 @@ std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl:
   // cluster extraction
   std::vector<pcl::PointIndices> cluster_indices;
   pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-  ec.setClusterTolerance(1.0);
-  ec.setMinClusterSize(50);
+
+  int cluster_tolerance, min_cluster_size;
+  ros::param::get("~cluster_tolerance", cluster_tolerance);
+  ros::param::get("~min_cluster_size", min_cluster_size);
+  ec.setClusterTolerance(cluster_tolerance);
+  ec.setMinClusterSize(min_cluster_size);
   ec.setMaxClusterSize(25000);
   ec.setSearchMethod(tree);
   ec.setInputCloud(pc);
@@ -93,18 +97,25 @@ std::list<pcl::PointXYZ>
                      std::vector<pcl::PointIndices> cluster_indices){
   int j = 0;
   std::list<pcl::PointXYZ> l = {};
+  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
   for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin();
-       it != cluster_indices.end() ; it++) {
-
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-
-    for (std::vector<int>::const_iterator pit = it->indices.begin();
+      ROS_INFO("Cluster size %d", it->indices.size());
+      it != cluster_indices.end() ; it++) {
+        for (std::vector<int>::const_iterator pit = it->indices.begin();
          pit != it->indices.end(); ++pit) {
+
       cloud_cluster->points.push_back(cloud->points[*pit]);
     }
     cloud_cluster->width = cloud_cluster->points.size();
     cloud_cluster->height = 1;
     cloud_cluster->is_dense = true;
+
+  sensor_msgs::PointCloud2 debug_msg;
+  pcl::toROSMsg(*cloud_cluster, debug_msg);
+  debug_msg.header.frame_id = "wamv/lidar_wamv_link";
+  debug.publish(debug_msg); }
+
+
 
     // Compute centroid of current cluster
     pcl::CentroidPoint<pcl::PointXYZ> centroid;
@@ -117,8 +128,9 @@ std::list<pcl::PointXYZ>
     centroid.get(c1);
     // Push to back of list
     l.push_back(c1);
-    }
   return l;
+
+
  }
 
 
@@ -134,8 +146,8 @@ bool detection(perception::DetectObjects::Request &req,
   ros::param::get("~base_frame", base_frame);
 
   ros::param::get("~lidar_frame", lidar_frame);
-  tf::TransformListener listener;
-  pcl_ros::transformPointCloud(base_frame, *pc, transformed_pc, listener);
+  // tf::TransformListener listener;
+  // pcl_ros::transformPointCloud(base_frame, *pc, transformed_pc, listener);
 
   // convert to PCL::PointCloud<pcl::PointXYZ>
   pcl::PCLPointCloud2 pcl_pc;
@@ -167,17 +179,18 @@ bool detection(perception::DetectObjects::Request &req,
     p.position.z = it->z;
     res.object_locations.poses.push_back(p);
   }
-  res.object_locations.header.frame_id = base_frame;
+  res.object_locations.header.frame_id = lidar_frame;
   return true;
 }
 
 void debugCallback(sensor_msgs::PointCloud2ConstPtr input_pc) {
 
   sensor_msgs::PointCloud2 transformed_pc;
-  std::string base_frame;
+  std::string base_frame, lidar_frame;
   ros::param::get("~base_frame", base_frame);
-  tf::TransformListener listener;
-  pcl_ros::transformPointCloud(base_frame, *input_pc, transformed_pc, listener);
+  ros::param::get("~lidar_frame", lidar_frame);
+  //tf::TransformListener listener;
+  //pcl_ros::transformPointCloud(base_frame, *input_pc, transformed_pc, listener);
 
   pcl::PCLPointCloud2 pcl_pc;
   pcl_conversions::toPCL(*input_pc, pcl_pc);
@@ -188,22 +201,19 @@ void debugCallback(sensor_msgs::PointCloud2ConstPtr input_pc) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
   //downsample(cloud_xyz, cloud_filtered);
 
- // planar_segmentation(cloud_filtered);
+  //planar_segmentation(cloud_xyz);
 
   //sensor_msgs::PointCloud2 debug_msg;
   //pcl::toROSMsg(*cloud_xyz, debug_msg);
   //debug.publish(debug_msg);
 
   std::vector<pcl::PointIndices> cluster_indices = euclidian_cluster_extraction(cloud_xyz);
-  ROS_INFO("Cluster size%d", cluster_indices.size());
-
   std::list<pcl::PointXYZ> centroids = compute_centroid(cloud_xyz, cluster_indices);
-  ROS_INFO("Centroid size %d", centroids.size());
 
   geometry_msgs::PoseArray msg;
   for (std::list<pcl::PointXYZ>::const_iterator it = centroids.begin();
   it != centroids.end(); it++) {
-    if (it->x < 0.0) continue;
+    // if (it->x < 0.0) continue;
     geometry_msgs::Pose p;
     p.position.x = it->x;
     p.position.y = it->y;
@@ -214,8 +224,8 @@ void debugCallback(sensor_msgs::PointCloud2ConstPtr input_pc) {
     p.orientation.w = 0;
     msg.poses.push_back(p);
 }
-    msg.header.frame_id = base_frame;
-    debug.publish(msg);
+    //msg.header.frame_id = lidar_frame;
+    //debug.publish(msg);
 
 }
 
@@ -227,7 +237,7 @@ int main(int argc, char **argv) {
   ros::param::get("~lidar_topic", lidar_topic);
 
   ros::ServiceServer service = nh.advertiseService("detect_objects", detection);
-  debug = nh.advertise<geometry_msgs::PoseArray>("lidar_debug", 10);
+  debug = nh.advertise<sensor_msgs::PointCloud2>("lidar_debug", 10);
   ros::Subscriber sub = nh.subscribe(lidar_topic, 10, debugCallback);
 
   ROS_INFO("Ready to detect objects in lidar view");

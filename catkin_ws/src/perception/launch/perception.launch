@@ -10,6 +10,8 @@
     type="string"/>
     <param name="lidar_frame" value="wamv/lidar_wamv_link" type="string"/>
     <param name="base_frame" value="wamv/base_link" type="string"/>
+    <param name="cluster_tolerance" value="0.0" type="double"/>
+    <param name="min_cluster_size" value="0.0" type="double"/>
     </node>
   </group>
 </launch>
