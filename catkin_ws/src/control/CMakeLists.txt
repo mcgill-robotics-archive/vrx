@@ -32,6 +32,7 @@ generate_messages(
 
 generate_dynamic_reconfigure_options(
   cfg/PIDParams.cfg
+  cfg/MixerParams.cfg
 )
 ###################################
 ## catkin specific configuration ##
