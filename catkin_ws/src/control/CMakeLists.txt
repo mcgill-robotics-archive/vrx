@@ -53,7 +53,7 @@ include_directories(
   ${Boost_INCLUDE_DIRS}
   src/pid
   include
- )
+  )
 
 add_executable(controller src/controller.cpp)
 add_dependencies(controller ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)

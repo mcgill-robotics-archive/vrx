@@ -176,7 +176,6 @@ Controller create_controller(const ros::NodeHandle& nh,
       windup, min_effort, max_effort, angular);
 }
 
-
 void reconf_callback(const char* name, Controller& ctl,
                       control::PIDParamsConfig& cfg)
 {

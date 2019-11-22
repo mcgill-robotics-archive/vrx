@@ -12,7 +12,7 @@
     <param name="base_frame" value="wamv/base_link" type="string"/>
     <param name="cluster_tolerance" value="0.5" type="double"/>
     <param name="min_cluster_size" value="10" type="double"/>
-      <param name="vg_size" value="0.1" type="double"/>
+    <param name="vg_size" value="0.1" type="double"/>
    </node>
   </group>
 </launch>

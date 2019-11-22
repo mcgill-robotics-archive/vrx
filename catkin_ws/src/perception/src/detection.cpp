@@ -24,8 +24,8 @@
 
 std::string lidar_topic;
 
-void downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr input,
-                pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+void downsample(const pcl::PointCloud<pcl::PointXYZ>::Ptr input,
+                const pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   // Use Voxel grid
   pcl::VoxelGrid<pcl::PointXYZ> vg;
   vg.setInputCloud(input);
@@ -35,7 +35,7 @@ void downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr input,
   vg.filter(*filtered);
 }
 
-void planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
+void planar_segmentation(const pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   // Create planar segmentation object to segment water from cluster
   pcl::SACSegmentation<pcl::PointXYZ> seg;
   pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
@@ -49,6 +49,7 @@ void planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   seg.setDistanceThreshold(0.02);
 
   pcl::PointCloud<pcl::PointXYZ> cloud_temp;
+
   // Perform euclidian clustering
   int i=0, nr_points = (int) filtered->points.size();
   while (filtered->points.size() > 0.3 * nr_points) {
@@ -72,7 +73,7 @@ void planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
   }
 }
 
-std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl::PointXYZ>::Ptr pc){
+std::vector<pcl::PointIndices> euclidian_cluster_extraction(const pcl::PointCloud<pcl::PointXYZ>::Ptr pc){
   // Kd tree
   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZ>);
   tree->setInputCloud(pc);
@@ -95,17 +96,17 @@ std::vector<pcl::PointIndices> euclidian_cluster_extraction(pcl::PointCloud<pcl:
 }
 
 std::list<pcl::PointXYZ>
-    compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
-                     std::vector<pcl::PointIndices> cluster_indices){
+    compute_centroid(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud,
+                     std::vector<pcl::PointIndices>& cluster_indices){
 
   std::list<pcl::PointXYZ> l = {};
-  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin();
-      it != cluster_indices.end() ; it++) {
+  for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.cbegin();
+      it != cluster_indices.cend() ; it++) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
 
-    for (std::vector<int>::const_iterator pit = it->indices.begin();
-         pit != it->indices.end(); ++pit) {
+    for (std::vector<int>::const_iterator pit = it->indices.cbegin();
+         pit != it->indices.cend(); ++pit) {
       cloud_cluster->points.push_back(cloud->points[*pit]);
     }
 
@@ -116,7 +117,7 @@ std::list<pcl::PointXYZ>
     // Compute centroid of current cluster
     pcl::CentroidPoint<pcl::PointXYZ> centroid;
     // Add points in cluster to centroid point
-    for (pcl::PointCloud<pcl::PointXYZ>::const_iterator cit = cloud_cluster->begin();
+    for (pcl::PointCloud<pcl::PointXYZ>::iterator cit = cloud_cluster->begin();
          cit != cloud_cluster->end() ; cit++) {
       centroid.add(*cit);
     }
@@ -143,13 +144,13 @@ bool detection(perception::DetectObjects::Request &req,
   ros::param::get("~lidar_frame", lidar_frame);
 
   // convert to PCL::PointCloud<pcl::PointXYZ>
-  pcl::PCLPointCloud2 pcl_pc;
-  pcl_conversions::toPCL(*pc, pcl_pc);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PointCloud<pcl::PointXYZ> ());
-  pcl::fromPCLPointCloud2(pcl_pc, *cloud_xyz);
+  const pcl::PCLPointCloud2::Ptr pcl_pc;
+  pcl_conversions::toPCL(*pc, *pcl_pc);
+  const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PointCloud<pcl::PointXYZ> ());
+  pcl::fromPCLPointCloud2(*pcl_pc, *cloud_xyz);
 
   // Downsample cloud
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
+  const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
   downsample(cloud_xyz, cloud_filtered);
   *cloud_xyz = *cloud_filtered;
 
@@ -160,8 +161,8 @@ bool detection(perception::DetectObjects::Request &req,
   std::list<pcl::PointXYZ> centroids = compute_centroid(cloud_xyz, cluster_indices);
 
   // Construct response from centroids
-  for (std::list<pcl::PointXYZ>::const_iterator it = centroids.begin();
-       it != centroids.end(); it++) {
+  for (std::list<pcl::PointXYZ>::const_iterator it = centroids.cbegin();
+       it != centroids.cend(); it++) {
     // Check if cluster his behind wamv
     if (it->x < 0.f) continue;
     geometry_msgs::Pose p;
