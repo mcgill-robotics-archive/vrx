@@ -23,7 +23,6 @@
 #include <geometry_msgs/PoseArray.h>
 
 std::string lidar_topic;
-ros::Publisher debug;
 
 void downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr input,
                 pcl::PointCloud<pcl::PointXYZ>::Ptr filtered){
@@ -163,6 +162,8 @@ bool detection(perception::DetectObjects::Request &req,
   // Construct response from centroids
   for (std::list<pcl::PointXYZ>::const_iterator it = centroids.begin();
        it != centroids.end(); it++) {
+    // Check if cluster his behind wamv
+    if (it->x < 0.f) continue;
     geometry_msgs::Pose p;
     p.position.x = it->x;
     p.position.y = it->y;
@@ -173,52 +174,6 @@ bool detection(perception::DetectObjects::Request &req,
   return true;
 }
 
-void debugCallback(sensor_msgs::PointCloud2ConstPtr input_pc) {
-
-  sensor_msgs::PointCloud2 transformed_pc;
-  std::string base_frame, lidar_frame;
-  ros::param::get("~base_frame", base_frame);
-  ros::param::get("~lidar_frame", lidar_frame);
-  //tf::TransformListener listener;
-  //pcl_ros::transformPointCloud(base_frame, *input_pc, transformed_pc, listener);
-
-  pcl::PCLPointCloud2 pcl_pc;
-  pcl_conversions::toPCL(*input_pc, pcl_pc);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PointCloud<pcl::PointXYZ> ());
-  pcl::fromPCLPointCloud2(pcl_pc, *cloud_xyz);
-
-  // Downsample cloud
-  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
-  downsample(cloud_xyz, cloud_filtered);
-  *cloud_xyz = *cloud_filtered;
-
-  //sensor_msgs::PointCloud2 debug_msg;
-  //pcl::toROSMsg(*cloud_xyz, debug_msg);
-  //debug.publish(debug_msg);
-
-  std::vector<pcl::PointIndices> cluster_indices = euclidian_cluster_extraction(cloud_xyz);
-  std::list<pcl::PointXYZ> centroids = compute_centroid(cloud_xyz, cluster_indices);
-
-  geometry_msgs::PoseArray msg;
-  for (std::list<pcl::PointXYZ>::const_iterator it = centroids.begin();
-  it != centroids.end(); it++) {
-    // if (it->x < 0.0) continue;
-    geometry_msgs::Pose p;
-    p.position.x = it->x;
-    p.position.y = it->y;
-    p.position.z = it->z;
-    p.orientation.x = 0;
-    p.orientation.y = 0;
-    p.orientation.z = 1;
-    p.orientation.w = 0;
-    msg.poses.push_back(p);
-}
-    msg.header.frame_id = lidar_frame;
-    debug.publish(msg);
-
-}
-
-
 int main(int argc, char **argv) {
   ros::init(argc, argv, "object_detection_server");
   ros::NodeHandle nh("~");
@@ -226,9 +181,6 @@ int main(int argc, char **argv) {
   ros::param::get("~lidar_topic", lidar_topic);
 
   ros::ServiceServer service = nh.advertiseService("detect_objects", detection);
-  debug = nh.advertise<geometry_msgs::PoseArray>("lidar_debug", 10);
-  ros::Subscriber sub = nh.subscribe(lidar_topic, 10, debugCallback);
-
   ROS_INFO("Ready to detect objects in lidar view");
 
   ros::spin();
