@@ -4,6 +4,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
+#include <std_msgs/Header.h>
 
 using namespace cv;
 using namespace std;
@@ -32,20 +33,21 @@ public:
   }
   catch (cv_bridge::Exception& e) {
     ROS_INFO("Error with conversion to opencv.");
+    return;
   }
 
   // convert to gray scale
-  cv_bridge::CvImagePtr src_gray;
-  cvtColor(cv_ptr->image, src_gray->image, COLOR_BGR2GRAY);
-  blur(src_gray->image, src_gray->image, Size(3, 3));
+  Mat src_gray;
+  cvtColor(cv_ptr->image, src_gray, COLOR_BGR2GRAY);
+  blur(src_gray, src_gray, Size(3, 3));
 
   // Perform canny edge detection
-  cv_bridge::CvImagePtr canny_output;
-  Canny(src_gray->image, canny_output->image, 100, 200);
+  Mat canny_output;
+  Canny(src_gray, canny_output, 100, 200);
 
   // Find contours using output of canny
   vector<vector<Point>> contours;
-  findContours(canny_output->image, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+  findContours(canny_output, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
   // Compute bounding rectangle for each object
   vector<vector<Point>> contours_poly (contours.size());
@@ -57,17 +59,20 @@ public:
     boundRect[i] = boundingRect (contours_poly[i]);
   }
 
-  cv_bridge::CvImagePtr ptr_final;
-  ptr_final->image = Mat::zeros (canny_output->image.size(), CV_8UC3);
+
+  cv_bridge::CvImagePtr final_ptr;
+  std_msgs::Header header;
+  Mat zeros =  Mat::zeros (canny_output.size(), CV_8UC3);
+  *final_ptr = cv_bridge::CvImage(header, sensor_msgs::image_encodings::RGB8,
+                                   zeros);
   RNG rng(12345);
 
   for (int i = 0 ; i < contours.size(); i++) {
     Scalar color = Scalar(rng.uniform(0, 256), rng.uniform(0, 256), rng.uniform(0, 256));
-    drawContours(ptr_final->image, contours_poly, (int) i, color);
-    rectangle(ptr_final->image, boundRect[i].tl(), boundRect[i].br(), color, 2);
+    drawContours(final_ptr->image, contours_poly, (int) i, color);
+    rectangle(final_ptr->image, boundRect[i].tl(), boundRect[i].br(), color, 2);
   }
-
-  pub.publish(ptr_final->toImageMsg());
+  pub.publish(final_ptr->toImageMsg());
   }
 };
 
