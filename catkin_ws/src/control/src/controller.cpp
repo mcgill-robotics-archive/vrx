@@ -60,11 +60,6 @@ void odom_callback(Controller& yr,
   thrust_back_left.data = thrust_vals[2];
   thrust_back_right.data = thrust_vals[3];
 
-  ROS_INFO_THROTTLE(0.5, "%f %f %f %f", thrust_front_left.data,
-      thrust_front_right.data,
-      thrust_back_left.data,
-      thrust_back_right.data);
-
   std::get<0>(thruster_pubs).publish(thrust_front_left);
   std::get<1>(thruster_pubs).publish(thrust_front_right);
   std::get<2>(thruster_pubs).publish(thrust_back_left);
