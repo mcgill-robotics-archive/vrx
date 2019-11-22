@@ -15,7 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   tf
   message_generation
+  image_transport
+  cv_bridge
 )
+
+find_package(OpenCV)
 
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
@@ -129,6 +133,7 @@ tf
 include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -145,7 +150,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(detection src/detection.cpp)
-
+add_executable(classification src/classification.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -159,7 +164,13 @@ add_executable(detection src/detection.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(detection
    ${catkin_LIBRARIES}
- )
+   ${OpenCV_LIBRARIES}
+)
+
+target_link_libraries(classification
+  ${catkin_LIBRARIES}
+  ${OpenCV_LIBRARIES}
+)
 
 #############
 ## Install ##

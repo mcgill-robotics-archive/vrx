@@ -1,0 +1,14 @@
+<launch>
+  <group ns="perception">
+    <node name="object_classification_server"
+          pkg="perception"
+          type="classification"
+          output="screen"
+          respawn="false">
+    <!-- Lidar topic -->
+    <param name="camera_topic"
+     value="/wamv/sensors/cameras/front_left_camera/image_raw"
+    type="string"/>
+   </node>
+  </group>
+</launch>
