@@ -49,4 +49,37 @@
     <param name="odom_topic" value="/wamv/robot_localization/odometry/filtered" type="string"/>
     <param name="setpoint_topic" value="/control/cmd_vel" type="string"/>
   </node>
+
+  <node name="waypoint_controller"
+   pkg="control"
+   type="waypoint_controller"
+   output="screen"
+   respawn="false">
+
+    <param name="acceptance_radius" value="0.01" type="double"/>
+    <param name="cmd_vel_topic" value="/control/cmd_vel" type="string"/>
+    <param name="wp_add_topic" value="/control/push_waypoint" type="string"/>
+    <param name="wp_clear_topic" value="/control/clear_waypoints" type="string"/>
+
+
+
+    <!--Lateral position controller params-->
+    <param name="lateral_pos/Kp" value="1" type="double"/>
+    <param name="lateral_pos/Ki" value="0.1" type="double"/>
+    <param name="lateral_pos/Kd" value="0" type="double"/>
+
+    <param name="lateral_pos/max_windup" value="5" type="double"/>
+    <param name="lateral_pos/min_effort" value="-1" type="double"/>
+    <param name="lateral_pos/max_effort" value="1" type="double"/>
+
+    <!--Forward velocity controller params-->
+    <param name="longitudal_pos/Kp" value="4" type="double"/>
+    <param name="longitudal_pos/Ki" value="0.4" type="double"/>
+    <param name="longitudal_pos/Kd" value="0" type="double"/>
+
+    <param name="longitudal_pos/max_windup" value="5" type="double"/>
+    <param name="longitudal_pos/min_effort" value="-5" type="double"/>
+    <param name="longitudal_pos/max_effort" value="5" type="double"/>
+
+  </node>
 </launch>
