@@ -1,25 +1,52 @@
 <launch>
-    <!-- Effort Controllers -->
-    <node name="DiffDrive"
-          pkg="control"
-          type="diffdrive_exec.py"
-          respawn="false"
-          output="screen">
-    </node>
+  <node name="rate_controller"
+   pkg="control"
+   type="controller"
+   output="screen"
+   respawn="false">
 
-    <node name="translator"
-          pkg="control"
-          type="translator.py"
-          respawn="false"
-          output="screen"/>
+    <!--Yaw rate controller params -->
+    <!-- (These are tuned so they should be moved to config file) -->
+    <param name="yaw_rate/Kp" value="10.0" type="double"/>
+    <param name="yaw_rate/Ki" value="2.0" type="double"/>
+    <param name="yaw_rate/Kd" value="0.3" type="double"/>
 
-    <node name="waypoint_controller"
-          pkg="control"
-          type="waypoint_controller.py"
-          respawn="false"
-          output="screen"/>
+    <param name="yaw_rate/max_windup" value="5" type="double"/>
+    <param name="yaw_rate/min_effort" value="-5." type="double"/>
+    <param name="yaw_rate/max_effort" value="5." type="double"/>
 
-    <!-- ROS PID Controllers -->
-    <include file="$(find control)/launch/pid.launch" />
+    <!--Lateral velocity controller params-->
+    <param name="lateral_vel/Kp" value="1" type="double"/>
+    <param name="lateral_vel/Ki" value="0.1" type="double"/>
+    <param name="lateral_vel/Kd" value="0" type="double"/>
 
+    <param name="lateral_vel/max_windup" value="5" type="double"/>
+    <param name="lateral_vel/min_effort" value="-1" type="double"/>
+    <param name="lateral_vel/max_effort" value="1" type="double"/>
+
+    <!--Forward velocity controller params-->
+    <param name="forward_vel/Kp" value="4" type="double"/>
+    <param name="forward_vel/Ki" value="0.4" type="double"/>
+    <param name="forward_vel/Kd" value="0" type="double"/>
+
+    <param name="forward_vel/max_windup" value="5" type="double"/>
+    <param name="forward_vel/min_effort" value="-5" type="double"/>
+    <param name="forward_vel/max_effort" value="5" type="double"/>
+
+    <!-- Mixer params -->
+    <param name="mixer/front_left_weight" value="1" type="double"/>
+    <param name="mixer/front_right_weight" value="1" type="double"/>
+    <param name="mixer/back_left_weight" value="0.6" type="double"/>
+    <param name="mixer/back_right_weight" value="0.6" type="double"/>
+
+    <!-- Thruster topics -->
+    <param name="front_left_thrust_topic" value="/wamv/thrusters/left_front_thrust_cmd" type="string"/>
+    <param name="front_right_thrust_topic" value="/wamv/thrusters/right_front_thrust_cmd" type="string"/>
+    <param name="back_left_thrust_topic" value="/wamv/thrusters/left_rear_thrust_cmd" type="string"/>
+    <param name="back_right_thrust_topic" value="/wamv/thrusters/right_rear_thrust_cmd" type="string"/>
+
+    <!-- Input topics -->
+    <param name="odom_topic" value="/wamv/robot_localization/odometry/filtered" type="string"/>
+    <param name="setpoint_topic" value="/control/cmd_vel" type="string"/>
+  </node>
 </launch>
