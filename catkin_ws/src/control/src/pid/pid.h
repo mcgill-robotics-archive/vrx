@@ -9,9 +9,6 @@ template <typename T>
 class Controller {
   public:
   const T max_windup;
-  const T min_effort;
-  const T max_effort;
-
   Controller(const T& Kp,
       const T& Ki,
       const T& Kd,
@@ -20,8 +17,8 @@ class Controller {
       const T& max_effort,
       const bool angular = false)
       : max_windup(max_windup)
-      , min_effort(min_effort)
-      , max_effort(max_effort)
+      , _min_effort(min_effort)
+      , _max_effort(max_effort)
       , _started(false)
       , _curr({ 0, 0 })
       , _prev({ 0, 0 })
@@ -51,16 +48,44 @@ class Controller {
     return _Kd;
   }
 
+  inline T min_effort() const
+  {
+    return _min_effort;
+  }
+
+  inline T max_effort() const
+  {
+    return _max_effort;
+  }
+
   inline T target() const
   {
     return _setpoint;
   }
 
-  inline void reconfigure(const T& Kp, const T& Ki, const T& Kd)
+  inline void set_Kp(const T& Kp)
   {
     _Kp = Kp;
-    _Ki = Ki;
+  }
+
+  inline void set_Kd(const T& Kd)
+  {
     _Kd = Kd;
+  }
+
+  inline void set_Ki(const T& Ki)
+  {
+    _Ki = Ki;
+  }
+
+  inline void set_min_effort(const T& min_effort)
+  {
+    _min_effort = min_effort;
+  }
+
+  inline void set_max_effort(const T& max_effort)
+  {
+    _max_effort = max_effort;
   }
 
   inline void set_target(const T& setpoint)
@@ -72,7 +97,7 @@ class Controller {
   {
     float error = _setpoint.load() - data;
     if (_angular) {
-      error = std::fmod(error + M_PI,  2 * M_PI) - (float)M_PI; // wrap to [-pi, pi]
+      error = std::fmod(error + M_PI, 2 * M_PI) - (float)M_PI; // wrap to [-pi, pi]
     }
 
     _curr = { error, stamp };
@@ -98,11 +123,11 @@ class Controller {
       _sum = std::clamp(_sum + dt * error, -max_windup, max_windup);
       u += _sum * Ki();
 
-      if(dt > 0.)
+      if (dt > 0.)
         u += (de / dt) * Kd();
     }
 
-    u = std::clamp(u + _bias, min_effort, max_effort);
+    u = std::clamp(u + _bias, min_effort() , max_effort());
     _prev = _curr;
 
     return u;
@@ -115,6 +140,9 @@ class Controller {
   std::atomic<T> _Ki;
   std::atomic<T> _Kd;
   std::atomic<T> _bias;
+
+  std::atomic<T> _min_effort;
+  std::atomic<T> _max_effort;
 
   std::pair<T, double> _curr;
   std::pair<T, double> _prev;

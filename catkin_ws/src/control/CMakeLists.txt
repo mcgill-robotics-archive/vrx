@@ -11,13 +11,9 @@ find_package(
 	geometry_msgs
 	std_msgs
   nav_msgs
-	rospy
-	pid
-)
-
-
-
-find_package(Boost REQUIRED)
+  rospy
+  pid
+  )
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -26,37 +22,38 @@ find_package(Boost REQUIRED)
 add_service_files(
   FILES
   Waypoint.srv
-)
+  )
 
 generate_messages(
-	DEPENDENCIES
-	std_msgs
+  DEPENDENCIES
+  std_msgs
   geometry_msgs
-)
+  )
 
 generate_dynamic_reconfigure_options(
   cfg/PIDParams.cfg
+  cfg/MixerParams.cfg
 )
 ###################################
 ## catkin specific configuration ##
 ###################################
 
 catkin_package(
-	CATKIN_DEPENDS
+  CATKIN_DEPENDS
   message_generation
-	geometry_msgs
-	std_msgs
+  geometry_msgs
+  std_msgs
   tf2_ros
-	rospy
-	pid
-)
+  rospy
+  pid
+  )
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   src/pid
   include
-)
+ )
 
 add_executable(controller src/controller.cpp)
 add_dependencies(controller ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
@@ -70,4 +67,4 @@ install(TARGETS controller
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+  )

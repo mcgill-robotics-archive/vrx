@@ -16,6 +16,7 @@
   <depend>genmsg</depend>
   <depend>geometry_msgs</depend>
   <depend>message_generation</depend>
+  <depend>dynamic_reconfigure</depend>
   <depend>pid</depend>
   <depend>rospy</depend>
   <depend>std_msgs</depend>
