@@ -72,7 +72,7 @@
     <param name="lateral_pos/min_effort" value="-1" type="double"/>
     <param name="lateral_pos/max_effort" value="1" type="double"/>
 
-    <!--Forward velocity controller params-->
+    <!--Longitudinal position controller params-->
     <param name="longitudal_pos/Kp" value="4" type="double"/>
     <param name="longitudal_pos/Ki" value="0.4" type="double"/>
     <param name="longitudal_pos/Kd" value="0" type="double"/>
@@ -80,6 +80,15 @@
     <param name="longitudal_pos/max_windup" value="5" type="double"/>
     <param name="longitudal_pos/min_effort" value="-5" type="double"/>
     <param name="longitudal_pos/max_effort" value="5" type="double"/>
+
+    <!--Yaw position controller params-->
+    <param name="yaw_pos/Kp" value="4" type="double"/>
+    <param name="yaw_pos/Ki" value="0.4" type="double"/>
+    <param name="yaw_pos/Kd" value="0" type="double"/>
+
+    <param name="yaw_pos/max_windup" value="5" type="double"/>
+    <param name="yaw_pos/min_effort" value="-1" type="double"/>
+    <param name="yaw_pos/max_effort" value="1" type="double"/>
 
   </node>
 </launch>

@@ -28,9 +28,11 @@ struct WaypointManager {
     dynamic_reconfigure::Server<control::PIDParamsConfig>
                    _f_ctl_reconf_server;
 
-
     dynamic_reconfigure::Server<control::PIDParamsConfig>
                    _lat_ctl_reconf_server;
+
+    dynamic_reconfigure::Server<control::PIDParamsConfig>
+                   _yaw_ctl_reconf_server;
 
     ros::Publisher _vel_pub;
 
@@ -38,6 +40,7 @@ struct WaypointManager {
 
     controller::Controller _lat_ctl;
     controller::Controller _f_ctl;
+    controller::Controller _yaw_ctl;
 
     std::deque<geometry_msgs::PoseStamped> _wp_queue;
     float _wp_tol;
