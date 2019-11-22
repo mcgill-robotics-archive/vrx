@@ -19,11 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
-find_package(OpenCV)
-
 ## System dependencies are found with CMake's conventions
 find_package(Boost REQUIRED)
 
+find_package(OpenCV)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed

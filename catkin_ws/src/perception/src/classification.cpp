@@ -8,9 +8,22 @@
 using namespace cv;
 using namespace std;
 
-image_transport::Publisher pub;
+class BoundingBox
+{
+  ros::NodeHandle nh;
+  image_transport::ImageTransport it;
+  image_transport::Subscriber sub;
+  image_transport::Publisher pub;
 
-void classificationCallBack(const sensor_msgs::ImageConstPtr& msg) {
+public:
+  BoundingBox () : it(nh) {
+    string camera_topic;
+    ros::param::get("~camera_topic", camera_topic);
+    sub = it.subscribe(camera_topic, 1,&BoundingBox::classificationCallBack, this);
+    pub = it.advertise("bounding_debug", 1);
+  }
+
+  void classificationCallBack(const sensor_msgs::ImageConstPtr& msg) {
 
 
   cv_bridge::CvImagePtr cv_ptr;
@@ -22,17 +35,17 @@ void classificationCallBack(const sensor_msgs::ImageConstPtr& msg) {
   }
 
   // convert to gray scale
-  Mat src_gray;
-  cvtColor(cv_ptr->image, src_gray, COLOR_BGR2GRAY);
-  blur(src_gray, src_gray, Size(3, 3));
+  cv_bridge::CvImagePtr src_gray;
+  cvtColor(cv_ptr->image, src_gray->image, COLOR_BGR2GRAY);
+  blur(src_gray->image, src_gray->image, Size(3, 3));
 
   // Perform canny edge detection
-  Mat canny_output;
-  Canny(src_gray, canny_output, 100, 200);
+  cv_bridge::CvImagePtr canny_output;
+  Canny(src_gray->image, canny_output->image, 100, 200);
 
   // Find contours using output of canny
   vector<vector<Point>> contours;
-  findContours(canny_output, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
+  findContours(canny_output->image, contours, RETR_TREE, CHAIN_APPROX_SIMPLE);
 
   // Compute bounding rectangle for each object
   vector<vector<Point>> contours_poly (contours.size());
@@ -45,7 +58,7 @@ void classificationCallBack(const sensor_msgs::ImageConstPtr& msg) {
   }
 
   cv_bridge::CvImagePtr ptr_final;
-  ptr_final->image = Mat::zeros (canny_output.size(), CV_8UC3);
+  ptr_final->image = Mat::zeros (canny_output->image.size(), CV_8UC3);
   RNG rng(12345);
 
   for (int i = 0 ; i < contours.size(); i++) {
@@ -55,20 +68,14 @@ void classificationCallBack(const sensor_msgs::ImageConstPtr& msg) {
   }
 
   pub.publish(ptr_final->toImageMsg());
-}
+  }
+};
 
 
 int main(int argc, char** argv) {
 
   ros::init(argc, argv, "classification_server");
-  ros::NodeHandle nh("~");
-  image_transport::ImageTransport it(nh);
-
-  string input_camera_topic;
-  ros::param::get("~camera_topic", input_camera_topic);
-  pub = it.advertise("classification_debug", 1);
-  image_transport::Subscriber sub = it.subscribe(input_camera_topic, 1, classificationCallBack);
-
+  BoundingBox bb;
   ros::spin();
   return 0;
 }
