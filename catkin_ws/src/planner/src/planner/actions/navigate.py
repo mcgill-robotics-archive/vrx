@@ -4,7 +4,7 @@ import actionlib
 from planner.msg import NavPathAction
 
 
-class NavPathServer(object):
+class NavigateServer(object):
 	def __init__(self):
 		self.server = actionlib.SimpleActionServer(
 			'nav_path', NavPathAction, self.execute, False)
