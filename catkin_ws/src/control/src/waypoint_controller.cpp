@@ -5,8 +5,8 @@ WaypointManager::WaypointManager(ros::NodeHandle &nh,
                                  const float wp_tol) :
     _nh(nh),
     _wp_tol(wp_tol),
-    _lat_ctl(controller::create_controller(nh, "lateral_position")),
-    _f_ctl(controller::create_controller(nh, "lateral_position")),
+    _lat_ctl(controller::create_controller(nh, "lateral_pos")),
+    _f_ctl(controller::create_controller(nh, "longitudal_pos")),
     _f_ctl_reconf_server(ros::NodeHandle("~/longitudal_pos")),
     _lat_ctl_reconf_server(ros::NodeHandle("~/lateral_pos"))
 {
@@ -20,7 +20,13 @@ WaypointManager::WaypointManager(ros::NodeHandle &nh,
 }
 
 void WaypointManager::add(const geometry_msgs::PoseStamped::ConstPtr &wp){
+  ROS_INFO("PUSHED POINT");
   _wp_queue.push_back(*wp);
+}
+
+void WaypointManager::clear(const std_msgs::Bool::ConstPtr &msg){
+  ROS_INFO("CLEARED WAYPOINTS");
+  _wp_queue.clear();
 }
 
 void WaypointManager::run(){
@@ -32,9 +38,9 @@ void WaypointManager::run(){
 
   geometry_msgs::PoseStamped transformed_wp;
   try{
-    listener.transformPose("base_link", curr, transformed_wp);
+    listener.transformPose("wamv/base_link", curr, transformed_wp);
   }catch (tf::TransformException e) {
-    ROS_WARN("Could not get transform to base_link, skipping %s",
+    ROS_WARN_THROTTLE(1, "Could not get transform to base_link, skipping %s",
              e.what());
   }
 
@@ -42,12 +48,14 @@ void WaypointManager::run(){
 
   const float diffx = transformed_wp.pose.position.x;
   const float diffy = transformed_wp.pose.position.y;
+  ROS_WARN("%f %f", diffx, diffy);
 
-  if (diffx*diffx + diffy*diffy > _wp_tol*_wp_tol){
+  if (diffx*diffx + diffy*diffy < _wp_tol*_wp_tol){
+    ROS_INFO("REACHED WAYPOINT");
     _wp_queue.pop_front();
   } else {
-    _f_ctl.measure(diffx, t);
-    _lat_ctl.measure(diffy, t);
+    _f_ctl.measure(-diffx, t);
+    _lat_ctl.measure(-diffy, t);
 
     geometry_msgs::TwistStamped controls;
 
@@ -59,18 +67,30 @@ void WaypointManager::run(){
   }
 }
 
-int main(){
+int main(int argc, char** argv){
+  ros::init(argc, argv, "waypoint_controller");
   ros::NodeHandle nh("~");
 
   float tol = 1;
   std::string cmd_vel_topic;
   std::string wp_add_topic;
+  std::string wp_clear_topic;
+
   nh.getParam("acceptance_radius", tol);
   nh.getParam("cmd_vel_topic", cmd_vel_topic);
+  nh.getParam("wp_add_topic", wp_add_topic);
+  nh.getParam("wp_clear_topic", wp_clear_topic);
+
   WaypointManager wp_handler(nh, cmd_vel_topic, tol);
 
-//ros::Subscriber add_point = nh.subscribe<geometry_msgs::PoseStamped>
-  //                       (wp_add_topic, 1, &WaypointManager::add, &wp_handler);
+  ros::Subscriber add_point = nh.subscribe<geometry_msgs::PoseStamped>
+                        (wp_add_topic, 1, &WaypointManager::add, &wp_handler);
 
-  ros::spin();
+  ros::Subscriber clear = nh.subscribe<std_msgs::Bool>
+                    (wp_clear_topic,  1, &WaypointManager::clear, &wp_handler);
+
+  while(ros::ok()){
+    wp_handler.run();
+    ros::spinOnce();
+  }
 }

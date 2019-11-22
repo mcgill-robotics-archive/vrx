@@ -5,6 +5,7 @@
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <std_msgs/Bool.h>
 
 #include <controller.h>
 
@@ -16,7 +17,7 @@ struct WaypointManager {
     ~WaypointManager(){}
 
     void add(const geometry_msgs::PoseStamped::ConstPtr &wp);
-    void clear();
+    void clear(const std_msgs::Bool::ConstPtr &msg);
 
     void run();
 
