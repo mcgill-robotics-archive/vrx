@@ -13,6 +13,7 @@ find_package(
   nav_msgs
   rospy
   pid
+  tf
   )
 
 ################################################
@@ -56,8 +57,15 @@ include_directories(
   )
 
 add_executable(controller src/controller.cpp)
+
+add_executable(waypoint_controller src/waypoint_controller.cpp)
+
 add_dependencies(controller ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
 target_link_libraries(controller ${catkin_LIBRARIES})
+
+add_dependencies(waypoint_controller ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+target_link_libraries(waypoint_controller ${catkin_LIBRARIES})
+
 
 #############
 ## Install ##
