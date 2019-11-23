@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 
 import rospy
-import numpy as np
-import tf2_ros as tf2
 
 from geodesy.utm import fromLatLong
-from geographic_msgs.msg import GeoPoseStamped
+from geographic_msgs.msg import GeoPose
 from geometry_msgs.msg import PoseStamped
-from math import atan2, pi
-from std_msgs.msg import Header, Float64
-from tf.transformations import euler_from_quaternion
-from threading import Lock
-from uuid_msgs.msg import UniqueID
+from std_msgs.msg import Header
 
 from navigation.srv import GeoToUTM, GeoToUTMResponse
 
@@ -20,20 +14,13 @@ def geo_to_utm_handler(req):
 						req.geo.position.longitude,
 						req.geo.position.altitude).toPoint()
 
-	# try:
-	# 	tr = self.buffer.lookup_transform(
-	# 		'earth', 'wamv/odom', rospy.Time(0))
-	# except (tf2.LookupException,
-	# 		tf2.ConnectivityException,
-	# 		tf2.ExtrapolationException) as e:
-	# 	rospy.logwarn_throttle(1, str(e))
-	# 	return
-
 	res = GeoToUTMResponse()
-	res.pose.position.x = point.x
-	res.pose.position.y = point.y
-	res.pose.position.z = point.z
-	res.pose.orientation = req.geo.orientation
+	res.pose.header = Header()
+	res.pose.header.frame_id = 'utm'
+	res.pose.pose.position.x = point.x
+	res.pose.pose.position.y = point.y
+	res.pose.pose.position.z = point.z
+	res.pose.pose.orientation = req.geo.orientation
 	return res
 
 if __name__ == '__main__':

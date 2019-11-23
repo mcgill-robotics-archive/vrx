@@ -9,11 +9,9 @@ find_package(catkin REQUIRED COMPONENTS
 	geodesy
 	geographic_msgs
 	geometry_msgs
-  message_generation
-  std_msgs
-	tf2
-	tf2_ros
-	uuid_msgs
+	robot_localization
+	message_generation
+	std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -110,11 +108,9 @@ catkin_package(CATKIN_DEPENDS
 	geodesy
 	geographic_msgs
 	geometry_msgs
-  message_generation
+	robot_localization
+	message_generation
 	std_msgs
-	tf2
-	tf2_ros
-	uuid_msgs
 )
 
 ###########
