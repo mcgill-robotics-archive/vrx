@@ -19,5 +19,8 @@ ros_lib
 *.swp
 .DS_Store
 
+# Robot Model
+*mr_wamv.urdf
+
 # VRX Repo
 catkin_ws/src/vrx

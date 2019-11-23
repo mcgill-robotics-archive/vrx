@@ -1,0 +1,10 @@
+#goal
+int64 stable_counts_ms
+---
+#result
+bool success
+---
+#feedback
+int64 stable_counts
+float64 lin_error
+float64 ang_error

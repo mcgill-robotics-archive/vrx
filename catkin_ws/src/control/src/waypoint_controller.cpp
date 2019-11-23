@@ -22,8 +22,6 @@ WaypointManager::WaypointManager(ros::NodeHandle &nh,
 
    _yaw_ctl_reconf_server.setCallback(std::bind(&controller::reconf_callback,
                     "yaw_pos", std::ref(_yaw_ctl), std::placeholders::_1));
-
-
 }
 
 void WaypointManager::add(const geometry_msgs::PoseStamped::ConstPtr &wp){

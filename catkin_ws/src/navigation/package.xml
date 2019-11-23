@@ -13,8 +13,8 @@
   <depend>geodesy</depend>
   <depend>geographic_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>message_generation</depend>
+  <depend>robot_localization</depend>
   <depend>std_msgs</depend>
-  <depend>tf2</depend>
-  <depend>tf2_ros</depend>
-  <depend>uuid_msgs</depend>
+  <exec_depend>message_runtime</exec_depend>
 </package>

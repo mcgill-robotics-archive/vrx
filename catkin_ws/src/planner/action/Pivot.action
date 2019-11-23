@@ -1,0 +1,12 @@
+#goal
+geographic_msgs/GeoPose pose
+float64 acceptance_yaw_thresh
+int64 stable_counts_ms
+---
+#result
+bool success
+---
+#feedback
+int64 stable_counts
+float64 lin_error
+float64 ang_error

@@ -1,5 +1,7 @@
 from planner import Planner
 from tasks import *
+from utils import *
+from actions import *
 
 
 __all__ = ['Planner',
@@ -8,4 +10,8 @@ __all__ = ['Planner',
 		   'Scan',
 		   'ScanAndDock',
 		   'StationKeeping',
-		   'Wayfinding']
+		   'Wayfinding',
+		   'HoldServer',
+		   'NavigateServer',
+		   'PivotServer',
+		   'wait_for_message']
