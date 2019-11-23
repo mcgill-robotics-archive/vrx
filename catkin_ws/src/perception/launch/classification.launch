@@ -5,10 +5,13 @@
           type="classification"
           output="screen"
           respawn="false">
-    <!-- Lidar topic -->
+    <!-- Camera topic -->
     <param name="camera_topic"
      value="/wamv/sensors/cameras/front_left_camera/image_raw"
-    type="string"/>
+     type="string"/>
+    <param name="hsv_threshold"
+     value="10.0"
+     type="double"/>
    </node>
   </group>
 </launch>

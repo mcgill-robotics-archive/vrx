@@ -54,16 +54,16 @@ find_package(OpenCV)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+   FILES
+   Classification.msg
+)
 
 ## Generate services in the 'srv' folder
  add_service_files(
    FILES
    DetectObjects.srv
+   ClassifyObjects.srv
  )
 
 ## Generate actions in the 'action' folder
