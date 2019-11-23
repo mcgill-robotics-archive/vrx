@@ -7,13 +7,13 @@
 
     <!--Yaw rate controller params -->
     <!-- (These are tuned so they should be moved to config file) -->
-    <param name="yaw_rate/Kp" value="10.0" type="double"/>
-    <param name="yaw_rate/Ki" value="2.0" type="double"/>
-    <param name="yaw_rate/Kd" value="0.3" type="double"/>
+    <param name="yaw_rate/Kp" value="1.0" type="double"/>
+    <param name="yaw_rate/Ki" value="0.4" type="double"/>
+    <param name="yaw_rate/Kd" value="1.0" type="double"/>
 
     <param name="yaw_rate/max_windup" value="5" type="double"/>
-    <param name="yaw_rate/min_effort" value="-5." type="double"/>
-    <param name="yaw_rate/max_effort" value="5." type="double"/>
+    <param name="yaw_rate/min_effort" value="-1." type="double"/>
+    <param name="yaw_rate/max_effort" value="1." type="double"/>
 
     <!--Lateral velocity controller params-->
     <param name="lateral_vel/Kp" value="1" type="double"/>
@@ -57,29 +57,37 @@
    respawn="false">
 
     <param name="acceptance_radius" value="0.01" type="double"/>
+    <param name="acceptance_radius" value="0.1" type="double"/>
     <param name="cmd_vel_topic" value="/control/cmd_vel" type="string"/>
     <param name="wp_add_topic" value="/control/push_waypoint" type="string"/>
     <param name="wp_clear_topic" value="/control/clear_waypoints" type="string"/>
 
-
-
     <!--Lateral position controller params-->
-    <param name="lateral_pos/Kp" value="1" type="double"/>
+    <param name="lateral_pos/Kp" value="3" type="double"/>
     <param name="lateral_pos/Ki" value="0.1" type="double"/>
-    <param name="lateral_pos/Kd" value="0" type="double"/>
+    <param name="lateral_pos/Kd" value="1" type="double"/>
 
     <param name="lateral_pos/max_windup" value="5" type="double"/>
-    <param name="lateral_pos/min_effort" value="-1" type="double"/>
-    <param name="lateral_pos/max_effort" value="1" type="double"/>
+    <param name="lateral_pos/min_effort" value="-2" type="double"/>
+    <param name="lateral_pos/max_effort" value="2" type="double"/>
 
-    <!--Forward velocity controller params-->
+    <!--Longitudinal position controller params-->
     <param name="longitudal_pos/Kp" value="4" type="double"/>
     <param name="longitudal_pos/Ki" value="0.4" type="double"/>
-    <param name="longitudal_pos/Kd" value="0" type="double"/>
+    <param name="longitudal_pos/Kd" value="1" type="double"/>
 
     <param name="longitudal_pos/max_windup" value="5" type="double"/>
     <param name="longitudal_pos/min_effort" value="-5" type="double"/>
     <param name="longitudal_pos/max_effort" value="5" type="double"/>
+
+    <!--Yaw position controller params-->
+    <param name="yaw_pos/Kp" value="7" type="double"/>
+    <param name="yaw_pos/Ki" value="0.4" type="double"/>
+    <param name="yaw_pos/Kd" value="1" type="double"/>
+
+    <param name="yaw_pos/max_windup" value="5" type="double"/>
+    <param name="yaw_pos/min_effort" value="-1" type="double"/>
+    <param name="yaw_pos/max_effort" value="1" type="double"/>
 
   </node>
 </launch>
