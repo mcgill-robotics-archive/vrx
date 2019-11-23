@@ -1,3 +1,6 @@
+#ifndef __PID_H
+#define __PID_H
+
 #include <algorithm>
 #include <atomic>
 #include <cmath>
@@ -166,3 +169,4 @@ Controller<T> make_controller(const T& Kp,
   return Controller<T>(Kp, Ki, Kd, max_windup, min_effort, max_effort, angular);
 }
 } // namespace pid
+#endif
