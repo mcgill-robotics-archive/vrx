@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install git mercurial curl apt-utils vim \
                       python-pip python3-pip sudo cmake ruby libeigen3-dev \
                       pkg-config protobuf-compiler ros-melodic-pid \
                       ros-melodic-xacro wget ros-melodic-geographic-msgs \
-                      ros-melodic-geodesy -y
+                      ros-melodic-geodesy tmuxinator ros-melodic-smach \
+                      ros-melodic-smach-ros -y
 
 RUN pip install catkin_tools
 
@@ -28,11 +29,10 @@ WORKDIR /opt
 
 ADD tools/. /opt/vrx/tools/
 RUN ./vrx/tools/gazebo/upgrade-gazebo.sh
-RUN apt-get install ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-dev -y
+RUN apt-get install ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-dev \
+                    ros-melodic-pcl-ros ros-melodic-pcl-conversions -y
 
 ADD catkin_ws/. vrx/catkin_ws/
-
-RUN apt-get install tmuxinator ros-melodic-smach ros-melodic-smach-ros -y
 
 WORKDIR vrx/catkin_ws/
 RUN catkin clean -b --yes
