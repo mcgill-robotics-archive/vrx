@@ -3,7 +3,7 @@ import smach
 import smach_ros
 
 from tasks import *
-from wait_for_message import wait_for_message
+from utils import *
 from vrx_gazebo.msg import Task
 
 
@@ -61,7 +61,7 @@ class Wait(smach.State):
 
 
 class ChooseTask(smach.State):
-	def __init__(self, task_topic, target_tasks, choose_task_rate):
+	def __init__(self, target_tasks, choose_task_rate):
 		outcomes = ['station_keeping',
 					'wayfinding',
 					'perception',
@@ -74,7 +74,6 @@ class ChooseTask(smach.State):
 					'preempted']
 		smach.State.__init__(self, outcomes=outcomes)
 
-		self.task_sub = rospy.Subscriber(task_topic, Task, self.task_cb)
 
 		self.target_tasks = target_tasks		
 		self.rate = rospy.Rate(choose_task_rate)
@@ -98,6 +97,7 @@ class ChooseTask(smach.State):
 		# if not self.target_tasks:
 		# 	return 'succeeded'
 		# =====================================================================
+
 		if self.task in self.target_tasks:
 			self.target_tasks.remove(self.task)
 			return self.task
@@ -113,26 +113,33 @@ class Planner(object):
 	def __init__(self, task_topic, attempted_tasks, init_timeout,
 		choose_task_rate, give_up_rate):
 		
+		rospy.loginfo('{}'.format(attempted_tasks))
+
 		outcomes = ['succeeded', 'failed', 'preempted']
 		self.sm = smach.StateMachine(outcomes=outcomes)
 
+		self.initialize = Initialize(task_topic, init_timeout)
+		self.wait = Wait(task_topic, give_up_rate)
 		self.station_keeping = StationKeeping().get_state_machine()
 		self.wayfinding = Wayfinding().get_state_machine()
 		self.perception = Perception().get_state_machine()
 		self.navigation_course = NavigationCourse().get_state_machine()
 		self.scan = Scan().get_state_machine()
 		self.scan_and_dock = ScanAndDock().get_state_machine()
+		self.choose_task = ChooseTask(attempted_tasks, choose_task_rate)
+
+		self.task_sub = rospy.Subscriber(task_topic, Task, self.choose_task.task_cb)
 
 		with self.sm:
 			smach.StateMachine.add(
 				'INITIALIZE',
-				Initialize(task_topic, init_timeout),
+				self.initialize,
 				{'succeeded':'CHOOSE_TASK',
 				'timed_out':'failed',
 				'preempted':'preempted'})
 			smach.StateMachine.add(
 				'WAIT',
-				Wait(task_topic, give_up_rate),
+				self.wait,
 				{'succeeded':'CHOOSE_TASK',
 				'failed':'failed',
 				'preempted':'preempted'})
@@ -174,7 +181,7 @@ class Planner(object):
 				'preempted':'preempted'})
 			smach.StateMachine.add(
 				'CHOOSE_TASK',
-				ChooseTask(task_topic, attempted_tasks, choose_task_rate),
+				self.choose_task,
 				{'station_keeping':'STATION_KEEPING',
 				'wayfinding':'WAYFINDING',
 				'perception':'PERCEPTION',

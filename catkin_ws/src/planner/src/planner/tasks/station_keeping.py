@@ -2,68 +2,56 @@ import rospy
 import smach
 import smach_ros
 
-class Direct(smach.State):
-	"""
-	Smach state for redirecting the boat towards a waypoint
-	"""
-	def __init__(self):
-		outcomes = ['succeeded', 'failed', 'preempted']
-		smach.State.__init__(self, outcomes=outcomes)
+from planner.utils import wait_for_message
+from planner.msg import NavigateAction, NavigateGoal
+from geographic_msgs.msg import GeoPoseStamped
 
-	def execute(self, userdata):
-		rospy.logdebug('[Station Keeping] Executing direct state')
-		return 'succeeded'
-
-class Navigate(smach.State):
-	"""
-	Smach state that maintains course towards waypoint
-	"""
-	def __init__(self):
-		outcomes = ['succeeded', 'failed', 'drifted', 'preempted']
-		smach.State.__init__(self, outcomes=outcomes)
-
-	def execute(self, userdata):
-		rospy.logdebug('[Station Keeping] Executing navigate state')
-		return 'succeeded'
-
-class Hold(smach.State):
-	"""
-	Smach state for holding the station-keeping pose
-	"""
-	def __init__(self):
-		outcomes = ['succeeded', 'failed', 'drifted', 'preempted']
-		smach.State.__init__(self, outcomes=outcomes)
-
-	def execute(self, userdata):
-		rospy.logdebug('[Station Keeping] Executing hold state')
-		return 'succeeded'
 
 class StationKeeping(object):
+	STATION_KEEPING_GOAL_TOPIC = '/vrx/station_keeping/goal'
+	STATION_KEEPING_TIMEOUT = 5
+
 	def __init__(self):
+		self.goal = NavigateGoal()
+
 		outcomes = ['succeeded', 'failed', 'preempted']
 		self.sm = smach.StateMachine(outcomes=outcomes)
 
+		try:
+			rospy.loginfo('Station Keeping: Waiting for goal...')
+			res = wait_for_message(self.STATION_KEEPING_GOAL_TOPIC,
+								   GeoPoseStamped,
+								   self.STATION_KEEPING_TIMEOUT)
+			
+			self.goal.poses.append(res.pose)
+			self.goal.acceptance_radius = 0.01
+			self.goal.stable_counts_ms = 30000
+
+		except Exception as e:
+			rospy.logwarn('Timed out waiting for goal... {}'.format(e))
+			return
+
 		with self.sm:
-			smach.StateMachine.add(
-				'DIRECT', 
-				Direct(),
-				{'succeeded':'NAVIGATE',
-				 'failed':'failed',
-				 'preempted':'preempted'})
+			# smach.StateMachine.add(
+			# 	'DIRECT', 
+			# 	Direct(),
+			# 	{'succeeded':'NAVIGATE',
+			# 	 'aborted':'failed',
+			# 	 'preempted':'preempted'})
 			smach.StateMachine.add(
 				'NAVIGATE',
-				Navigate(),
-				{'succeeded':'HOLD',
-				 'failed':'failed',
-				 'drifted':'DIRECT',
-				 'preempted':'preempted'})
-			smach.StateMachine.add(
-				'HOLD',
-				Hold(),
+				smach_ros.SimpleActionState('navigate_action', 
+											NavigateAction,
+											goal=self.goal),
 				{'succeeded':'succeeded',
-				 'failed':'failed',
-				 'drifted':'DIRECT',
+				 'aborted':'failed',
 				 'preempted':'preempted'})
+			# smach.StateMachine.add(
+			# 	'HOLD',
+			# 	Hold(),
+			# 	{'succeeded':'succeeded',
+			# 	 'aborted':'failed',
+			# 	 'preempted':'preempted'})
 
 	def get_state_machine(self):
 		return self.sm
