@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 
 import actionlib
-import math
 import rospy
 import tf
 
 from geodesy.utm import UTMPoint
 from geographic_msgs.msg import GeoPoseStamped
-from geometry_msgs.msg import PoseStamped
 from perception.srv import DetectObjects
 from planner.msg import DetectAction, DetectFeedback, DetectResult
-from std_msgs.msg import Bool, Header
-from tf.transformations import euler_from_quaternion
+from std_msgs.msg import Header
 
 
 class DetectServer(object):
