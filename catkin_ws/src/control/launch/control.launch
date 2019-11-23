@@ -56,7 +56,6 @@
    output="screen"
    respawn="false">
 
-    <param name="acceptance_radius" value="0.01" type="double"/>
     <param name="acceptance_radius" value="0.1" type="double"/>
     <param name="cmd_vel_topic" value="/control/cmd_vel" type="string"/>
     <param name="wp_add_topic" value="/control/push_waypoint" type="string"/>
