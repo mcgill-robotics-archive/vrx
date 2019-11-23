@@ -1,7 +1,8 @@
 task_topic: '/vrx/task/info'
 init_timeout: 60
 choose_task_rate: 10
-give_up_rate: 10
+give_up_rate: 60
 attempted_tasks:
   - 'station_keeping'
   - 'wayfinding'
+  - 'perception'

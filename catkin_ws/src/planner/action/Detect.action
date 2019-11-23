@@ -1,0 +1,11 @@
+#goal
+bool detect
+int32 zone
+string band
+int32 attempted_trials
+---
+#result
+bool success
+---
+#feedback
+int32 nObjects

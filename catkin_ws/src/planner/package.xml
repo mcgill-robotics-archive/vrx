@@ -20,4 +20,7 @@
   <depend>smach_ros</depend>
   <depend>std_msgs</depend>
   <depend>vrx_gazebo</depend>
+
+  <exec_depend>navigation</exec_depend>
+  <exec_depend>perception</exec_depend>
 </package>

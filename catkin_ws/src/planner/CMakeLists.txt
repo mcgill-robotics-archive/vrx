@@ -60,6 +60,7 @@ catkin_python_setup()
 add_action_files(
 	DIRECTORY action
 	FILES
+	Detect.action
 	Navigate.action
 	Pivot.action
 	Hold.action

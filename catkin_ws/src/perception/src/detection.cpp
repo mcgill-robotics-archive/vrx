@@ -139,15 +139,27 @@ bool detection(perception::DetectObjects::Request &req,
   // Obtain point cloud message
   sensor_msgs::PointCloud2ConstPtr pc = ros::topic::waitForMessage<sensor_msgs::PointCloud2>
                                                     (lidar_topic, ros::Duration(10));
+
+  sensor_msgs::PointCloud2ConstPtr pc2 = ros::topic::waitForMessage<sensor_msgs::PointCloud2>
+                                                    (lidar_topic, ros::Duration(10));
+
   // Obtain lidar link frame
   std::string lidar_frame;
   ros::param::get("~lidar_frame", lidar_frame);
 
   // convert to PCL::PointCloud<pcl::PointXYZ>
-  const pcl::PCLPointCloud2::Ptr pcl_pc;
-  pcl_conversions::toPCL(*pc, *pcl_pc);
+  pcl::PCLPointCloud2 pcl_pc1;
+  pcl_conversions::toPCL(*pc, pcl_pc1);
+  const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz1 (new pcl::PointCloud<pcl::PointXYZ> ());
+  pcl::fromPCLPointCloud2(pcl_pc1, *cloud_xyz1);
+
+  pcl::PCLPointCloud2 pcl_pc2;
+  pcl_conversions::toPCL(*pc2, pcl_pc2);
+  const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz2 (new pcl::PointCloud<pcl::PointXYZ> ());
+  pcl::fromPCLPointCloud2(pcl_pc2, *cloud_xyz2);
+
   const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz (new pcl::PointCloud<pcl::PointXYZ> ());
-  pcl::fromPCLPointCloud2(*pcl_pc, *cloud_xyz);
+  *cloud_xyz = *cloud_xyz1 + *cloud_xyz2;
 
   // Downsample cloud
   const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ> ());
